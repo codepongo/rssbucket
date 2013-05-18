@@ -4,7 +4,7 @@ Mac 系统下的rss阅读器
 ------------------------------------
 
 fork from [rssbucket](https://github.com/bdunagan/rssbucket)
-![RssBucket icon](rssBucket_icon.png)
+![RssBucket icon](rssbucket_icon.png)
 ## different between rssbucket and zjrssbucket 与rssbucket不同##
 * [remove] reset function 移除恢复默认功能
 * [change]save all rss content instead of save rss url 不仅仅存储rss地址而是存储所有rss信息
@@ -21,8 +21,11 @@ fork from [rssbucket](https://github.com/bdunagan/rssbucket)
 * reading offline: reading description offline 离线阅读
 * browser: browser the rss item's web page online 在线浏览相关网页
 * unread: read or unread flag 已读标记
+
+
 ## Screenshot 截图##
-![RssBucket screenshot](rssBucket_screenshot.png)
+![RssBucket screenshot](rssbucket_screenshot.png)
+
 
 ## develop 开发##
 Mac OS X 10.6.8
