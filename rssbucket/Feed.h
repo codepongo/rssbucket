@@ -29,7 +29,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface Feed : NSObject
+@interface Feed : NSObject <NSCoding>
 {
     NSMutableDictionary *_properties;
 	NSMutableArray *_feedItems;
@@ -40,6 +40,6 @@
 - (NSMutableDictionary *)properties;
 - (void)setProperties:(NSDictionary *)newProperties;
 - (NSMutableArray *)feedItems;
-- (void)setFeedItems:(NSDictionary *)newFeedItems;
+- (void)setFeedItems:(NSArray *)newFeedItems;
 
 @end

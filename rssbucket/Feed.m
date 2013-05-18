@@ -34,7 +34,7 @@
 
 - (id)init
 {
-	return [self initWithUrl:@""];
+	return [self initWithUrl:[NSURL URLWithString:@""]];
 }
 
 - (id)initWithUrl:(NSURL *)url
@@ -44,6 +44,7 @@
 		_feedItems = [[NSMutableArray alloc] init];
 	
         _properties = [[NSMutableDictionary alloc] init];
+
 		[_properties setValue:url forKey:@"url"];
 		[_properties setValue:[NSDate date] forKey:@"date"];
 
@@ -85,10 +86,10 @@
 	return _feedItems;
 }
 	
-- (void)setFeedItems:(NSDictionary *)newFeedItems
+- (void)setFeedItems:(NSArray *)newFeedItems
 {
 	[_feedItems release];
-	_feedItems = [[NSMutableDictionary alloc] initWithDictionary:newFeedItems];
+	_feedItems = [[NSMutableArray alloc] initWithArray:newFeedItems];
 }
 
 - (BOOL)updateFeed
@@ -116,6 +117,7 @@
 		NSArray *itemNodes = [[feedContents rootElement] nodesForXPath:@"/rss[1]/channel[1]/item" error:&error];
 		NSEnumerator *itemNodesEnum = [itemNodes objectEnumerator];
 		NSXMLNode *itemNode;
+		NSUInteger index = 0;
 		while (itemNode = [itemNodesEnum nextObject])
 		{
 			NSString *title = [[[itemNode nodesForXPath:@"title[1]" error:&error] objectAtIndex:0] stringValue];
@@ -130,11 +132,12 @@
 			[properties setValue:url forKey:@"url"];
 			[properties setValue:date forKey:@"date"];
 			[item setProperties:properties];
-
+			item.unRead = YES;
 			// Add missing items to list.
 			if (![_feedItems containsObject:item])
 			{
-				[_feedItems addObject:item];
+				NSLog(@"%@", item);
+				[_feedItems insertObject:item atIndex:index++];
 			}
 		}
 		[error release];
@@ -158,5 +161,39 @@
 	// Let's say it failed.
 	return NO;
 }
+
+- (id) initWithCoder: (NSCoder *)coder  
+{
+    if (self = [super init])  
+    {
+		[self setProperties:[coder decodeObjectForKey:@"_properties"]];
+		_feedItems = [[NSMutableArray alloc] init];
+		NSArray* ar = [coder decodeObjectForKey:@"_feedItems"];
+		NSEnumerator *enumer = [ar objectEnumerator];
+		NSData* data;
+		while (data = [enumer nextObject])
+		{
+			FeedItem* item = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+			[_feedItems addObject:item];
+		}
+
+	}
+    return self;  
+}  
+- (void) encodeWithCoder: (NSCoder *)coder  
+{
+	[coder encodeObject:[self properties] forKey:@"_properties"];
+	NSMutableArray* ar = [NSMutableArray array];
+	NSEnumerator *enumer = [[self feedItems] objectEnumerator];
+	FeedItem* feedItem;
+	while (feedItem = [enumer nextObject])
+	{
+		NSData* data = [NSKeyedArchiver archivedDataWithRootObject:feedItem];
+		[ar addObject:data];
+	}
+	
+    [coder encodeObject: ar forKey:@"_feedItems"];  
+	
+}  
 
 @end

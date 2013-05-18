@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>rssbucket</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.bdunagan.rssbucket</string>
+	<string>com.codepongo.rssbucket</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

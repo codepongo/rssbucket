@@ -135,7 +135,7 @@ static int ICON_HEIGHT_OFFSET = 2;
 
 	// Draw icon.
 	NSRect iconRect = aRect;
-	iconRect.origin.y = ICON_HEIGHT_OFFSET;
+	iconRect.origin.y += ICON_HEIGHT_OFFSET;
 	iconRect.size.height = ICON_WIDTH;
 	iconRect.size.width = ICON_WIDTH;
 	[icon drawInRect:iconRect fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];

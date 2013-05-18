@@ -29,11 +29,13 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface FeedItem : NSObject
+@interface FeedItem : NSObject <NSCoding>
 {
     NSMutableDictionary *_properties;
+	BOOL _unRead;
 }
 
+@property(nonatomic, assign) BOOL unRead;
 - (NSMutableDictionary *)properties;
 - (void)setProperties:(NSDictionary *)newProperties;
 

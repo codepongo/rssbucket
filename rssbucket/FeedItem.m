@@ -31,11 +31,14 @@
 
 @implementation FeedItem
 
+@synthesize unRead = _unRead;
+
 - (id)init
 {
     if (self = [super init])
     {
         _properties = [[NSMutableDictionary alloc] init];
+		_unRead = YES;
     }
     return self;
 }
@@ -80,4 +83,18 @@
 	return YES;
 }
 
+- (id) initWithCoder: (NSCoder *)coder  
+{  
+    if (self = [super init])  
+    {  
+        [self setProperties:[coder decodeObjectForKey:@"_properties"]];
+		_unRead = [coder decodeBoolForKey:@"unread"];
+    }  
+    return self;  
+}  
+- (void) encodeWithCoder: (NSCoder *)coder  
+{  
+    [coder encodeObject:[self properties] forKey:@"_properties"];
+	[coder encodeBool:_unRead forKey:@"unread"];
+} 
 @end

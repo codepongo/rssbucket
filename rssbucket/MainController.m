@@ -38,6 +38,8 @@ static int UPDATE_FEED_INTERVAL = 600;
 
 @implementation MainController
 
+@synthesize shouldChange = _shouldChange;
+
 - (id) init
 {
 	self = [super init];
@@ -61,43 +63,47 @@ static int UPDATE_FEED_INTERVAL = 600;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+		//[feeds setSelectionIndex:0];
 	// Check user defaults.
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSArray *defaultFeeds = [defaults arrayForKey:DEFAULTS_KEY];
-	if (defaultFeeds == nil)
+	NSArray* ar = [defaults objectForKey:DEFAULTS_KEY];
+	NSEnumerator *dataEnumerator = [ar objectEnumerator];
+	NSData* data;
+	 
+	_shouldChange = NO;
+	while (data = [dataEnumerator nextObject])
 	{
-		// No stored defaults. Use the default ones.
-		defaultFeeds = [NSArray arrayWithObjects:@"http://feeds.feedburner.com/TechCrunch", @"http://www.tuaw.com/rss.xml", @"http://www.appleinsider.com/appleinsider.rss", nil];
+		Feed *feed = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+		[feeds addObject:feed];
+		[sourceList reloadData];
+			//NSString* feedString = [[feed valueForKeyPath:@"properties.url"] absoluteString];
+			//[self addFeedToList:feedString];
 	}
-	
-	// Add default feeds.
-	NSEnumerator *feedEnumerator = [defaultFeeds objectEnumerator];
-	NSString *feedString;
-	while (feedString = [feedEnumerator nextObject])
-	{
-		[self addFeedToList:feedString];
-	}
+	[feeds setSelectedObjects:nil];
+	_shouldChange = YES;
+	// Disable remove buttons if no feeds.
+	[self setRemoveFeed:[[feeds arrangedObjects] count] > 0];
 
-	// Update.
-	[self updateFeeds:nil];
-	[sourceList selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
+
+
+
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
 	// Update user defaults.
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSMutableArray *feedStrings = [NSMutableArray array];
+	NSMutableArray* ar = [NSMutableArray array];
+	
 	NSEnumerator *feedEnumerator = [[feeds arrangedObjects] objectEnumerator];
 	Feed *feed;
 	while (feed = [feedEnumerator nextObject])
 	{
-		[feedStrings addObject:[[feed valueForKeyPath:@"properties.url"] absoluteString]];
+		NSData* data = [NSKeyedArchiver archivedDataWithRootObject:feed];
+		[ar addObject:data];
 	}
-	if ([feedStrings count] > 0)
-	{
-		[defaults setObject:feedStrings forKey:DEFAULTS_KEY];
-	}
+	
+	[defaults setObject:ar forKey:DEFAULTS_KEY];
 	
 	return NSTerminateNow;
 }
@@ -146,10 +152,16 @@ static int UPDATE_FEED_INTERVAL = 600;
 
 - (IBAction)clickRemoveFeed:(id)sender
 {
-	[feeds removeObjects:[feeds selectedObjects]];
+	NSArray* selectedObjects = [feeds selectedObjects];
+	if ([selectedObjects count] == 0)
+	{
+		return;
+	}
+	[feeds removeObjects:selectedObjects];
 
 	// Reload source list.
 	[sourceList reloadData];
+	return;
 	if ([sourceList selectedRow] < 0)
 	{
 		[sourceList selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
@@ -162,27 +174,19 @@ static int UPDATE_FEED_INTERVAL = 600;
 	}
 }
 
-- (IBAction)clickResetDefaults:(id)sender
+- (IBAction)clickExportRss:(id)sender
 {
-	// Update user defaults to the defaults.
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSArray *defaultFeeds = [NSArray arrayWithObjects:@"http://feeds.feedburner.com/TechCrunch", @"http://www.tuaw.com/rss.xml", @"http://www.appleinsider.com/appleinsider.rss", nil];
-	[defaults setObject:defaultFeeds forKey:DEFAULTS_KEY];
-
-	// Remove current feeds.
-	[feeds removeObjects:[feeds arrangedObjects]];
-	
-	// Add default feeds.
-	NSEnumerator *feedEnumerator = [defaultFeeds objectEnumerator];
-	NSString *feedString;
-	while (feedString = [feedEnumerator nextObject])
+	NSSavePanel *save = [NSSavePanel savePanel];
+	[save runModal];
+	NSURL* file = [save URL];
+	NSMutableArray* feedString = [NSMutableArray array];
+	NSEnumerator* e = [[feeds arrangedObjects] objectEnumerator];
+	Feed* feed;
+	while (feed = [e nextObject])
 	{
-		[self addFeedToList:feedString];
+		[feedString addObject:[[feed valueForKeyPath:@"properties.url"] absoluteString]];
 	}
-	
-	// Update.
-	[self updateFeeds:nil];
-	[sourceList selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
+	[feedString writeToURL:file atomically:YES];
 }
 
 - (IBAction)okAddFeed:(id)sender
@@ -204,7 +208,7 @@ static int UPDATE_FEED_INTERVAL = 600;
 	}
 }
 
-- (IBAction)cancelAddFeed:(id)sender
+- (IBAction)cancelAddFeed:(id)sender	
 {
 	[NSApp endSheet:addFeedSheet];
     [addFeedSheet orderOut:self];
@@ -258,11 +262,39 @@ static int UPDATE_FEED_INTERVAL = 600;
 
 - (BOOL)addFeedToList:(NSString *)feedString
 {
-	NSURL *feedUrl = [NSURL URLWithString:feedString];
-	Feed *feed = [[[Feed alloc] initWithUrl:feedUrl] autorelease];
+	NSString* urlStr;
+	if ([feedString hasPrefix:@"feed://"])	{
+		NSRange r = NSMakeRange(7, [feedString length] - 7);
+		urlStr = [@"http://" stringByAppendingString:[feedString substringWithRange:r]];
+	}
+	else {
+		urlStr = feedString;
+	}
+	
+	
+	{	
+		NSEnumerator *feedEnumerator = [[feeds arrangedObjects] objectEnumerator];
+
+		Feed *feed;
+		while (feed = [feedEnumerator nextObject])
+		{
+			if ([urlStr isEqualToString:[[feed valueForKeyPath:@"properties.url"] absoluteString]])
+			{
+				_shouldChange = NO;
+				[feeds setSelectedObjects:[NSArray arrayWithObject:feed]];
+				_shouldChange = YES;
+				return YES;
+			}
+		}
+	}
+	
+	NSURL *feedUrl = [NSURL URLWithString:urlStr];
+	Feed* feed = [[[Feed alloc] initWithUrl:feedUrl] autorelease];
 	if (feed != nil)
 	{
+		_shouldChange = NO;
 		[feeds addObject:feed];
+		_shouldChange = YES;
 		[sourceList reloadData];
 		return YES;
 	}
@@ -284,7 +316,11 @@ static int UPDATE_FEED_INTERVAL = 600;
 		// Load selected item into WebView.
 		FeedItem *selectedItem = [[feedItems selectedObjects] objectAtIndex:0];
 		NSURL *url = [[selectedItem properties] objectForKey:@"url"];
-		[self loadUrlIntoWebView:url];
+		//[self loadUrlIntoWebView:url];
+		NSString* description = [[selectedItem properties] objectForKey:@"description"];
+		[[webView mainFrame] loadHTMLString: description baseURL:url];
+		selectedItem.unRead = NO;
+		
 	}
 }
 
@@ -313,7 +349,11 @@ static int UPDATE_FEED_INTERVAL = 600;
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-	[self updateWebView];
+	if (_shouldChange)
+	{
+		[self updateWebView];
+	}
+	[sourceList setNeedsDisplay:YES];
 }
 
 //

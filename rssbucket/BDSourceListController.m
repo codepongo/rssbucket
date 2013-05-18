@@ -29,6 +29,7 @@
 
 #import "BDSourceListController.h"
 #import "Feed.h"
+#import "FeedItem.h"
 #import "BDBadgeCell.h"
 #import "MainController.h"
 
@@ -50,15 +51,30 @@
 
 - (void)tableView:(NSTableView *)aTableView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
 {
+	
 	Feed *currentFeed = [[feeds arrangedObjects] objectAtIndex:rowIndex];
-	[aCell setBadgeCount:[[currentFeed feedItems] count]];
+	
+	NSUInteger count = 0;
+	NSEnumerator* e =[[currentFeed feedItems] objectEnumerator];
+	FeedItem* item;
+	while (item = [e nextObject])
+	{
+		if (item.unRead)
+		{
+			count++;
+		}
+	}
+	[aCell setBadgeCount:count];
 	[aCell setIcon:[currentFeed valueForKeyPath:@"properties.icon"]];
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
+	MainController* ctroller = [NSApp delegate];
+	ctroller.shouldChange = NO;
 	[feeds setSelectionIndex:[sourceList selectedRow]];
-	[[NSApp delegate] updateWebView];
+	ctroller.shouldChange = YES;
+		//[[NSApp delegate] updateWebView];
 }
 
 @end

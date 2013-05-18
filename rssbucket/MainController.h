@@ -54,7 +54,12 @@
 	IBOutlet NSArrayController *feedItems;
 	BOOL _isUpdatingFeeds;
 	NSThread *_updateThread;
+	
+	//Table View
+	BOOL _shouldChange;
 }
+
+@property(nonatomic, assign) BOOL shouldChange;
 
 - (NSArrayController *)feeds;
 - (void)updateWebView;
@@ -65,7 +70,7 @@
 - (IBAction)openURLInBrowser:(id)sender;
 - (IBAction)clickAddRemoveButtons:(id)sender;
 - (IBAction)clickRemoveFeed:(id)sender;
-- (IBAction)clickResetDefaults:(id)sender;
+- (IBAction)clickExportRss:(id)sender;
 - (void)setRemoveFeed:(BOOL)isEnabled;
 
 // Add Feed Sheet

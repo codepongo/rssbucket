@@ -1,0 +1,8 @@
+# mac
+.DS_Store
+# xcode
+build
+*.mode1v3
+*.pbxuser
+# vim
+*.swp
