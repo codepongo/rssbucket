@@ -37,6 +37,7 @@
 	// Data
 	IBOutlet NSArrayController *feeds;
 	IBOutlet NSArrayController *feedItems;
+		NSMutableArray* _indicators;
 }
 
 @end

@@ -29,11 +29,18 @@
 
 #import <Cocoa/Cocoa.h>
 
+
 @interface BDBadgeCell : NSTextFieldCell
 {
 	NSImage *icon;
 	int badgeCount;
+	BOOL _isFeeding;
+	NSProgressIndicator* indicator;
 }
+
+@property (assign, readwrite) BOOL isFeeding;
+
+@property (readwrite, copy) NSProgressIndicator* indicator;
 
 - (void)setBadgeCount:(int)newBadgeCount;
 - (void)setIcon:(NSImage *)newIcon;

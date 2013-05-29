@@ -32,8 +32,11 @@
 
 @implementation Feed
 
+@synthesize isFeeding = _isFeeding;
+
 - (id)init
 {
+	_isFeeding = NO;
 	return [self initWithUrl:[NSURL URLWithString:@""]];
 }
 
@@ -94,6 +97,7 @@
 
 - (BOOL)updateFeed
 {
+	_isFeeding = YES;
 	@try
 	{
 		
@@ -101,9 +105,17 @@
 
 		NSError *error;
 		NSXMLDocument *feedContents = [[[NSXMLDocument alloc] initWithContentsOfURL:url options:0 error:&error] autorelease];
+		if (feedContents == nil)
+		{
+			NSLog(@"%@", error);
+		}
 
 		NSXMLNode *titleNode = [[[feedContents rootElement] nodesForXPath:@"/rss[1]/channel[1]/title[1]" error:&error] objectAtIndex:0];
 		NSString *title = [titleNode stringValue];
+		if (nil == title)
+		{
+			NSLog(@"%@", feedContents);
+		}
 		[_properties setValue:title forKey:@"title"];
 
 		NSXMLNode *descNode = [[[feedContents rootElement] nodesForXPath:@"/rss[1]/channel[1]/description[1]" error:&error] objectAtIndex:0];
@@ -136,7 +148,6 @@
 			// Add missing items to list.
 			if (![_feedItems containsObject:item])
 			{
-				NSLog(@"%@", item);
 				[_feedItems insertObject:item atIndex:index++];
 			}
 		}
@@ -151,13 +162,17 @@
 			[_properties setValue:icon forKey:@"icon"];
 			[icon release];
 		}
-		
+		sleep(3);
+		_isFeeding = NO;
+		NSLog(@"return YES");
 		return YES;
 	}
 	@catch (NSException * e) {
 		NSLog(@"feed failed to load");
 	}
 
+	_isFeeding = NO;
+	NSLog(@"return NO");
 	// Let's say it failed.
 	return NO;
 }

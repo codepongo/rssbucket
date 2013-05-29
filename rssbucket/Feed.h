@@ -33,8 +33,11 @@
 {
     NSMutableDictionary *_properties;
 	NSMutableArray *_feedItems;
+	BOOL _isFeeding;
 }
 
+
+@property (assign, readwrite) BOOL isFeeding;
 - (id)initWithUrl:(NSURL *)url;
 - (BOOL)updateFeed;
 - (NSMutableDictionary *)properties;

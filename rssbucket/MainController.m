@@ -67,17 +67,13 @@ static int UPDATE_FEED_INTERVAL = 600;
 	// Check user defaults.
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	NSArray* ar = [defaults objectForKey:DEFAULTS_KEY];
-	NSEnumerator *dataEnumerator = [ar objectEnumerator];
-	NSData* data;
 	 
 	_shouldChange = NO;
-	while (data = [dataEnumerator nextObject])
+	for (id data in ar)
 	{
 		Feed *feed = [NSKeyedUnarchiver unarchiveObjectWithData:data];
 		[feeds addObject:feed];
 		[sourceList reloadData];
-			//NSString* feedString = [[feed valueForKeyPath:@"properties.url"] absoluteString];
-			//[self addFeedToList:feedString];
 	}
 	[feeds setSelectedObjects:nil];
 	_shouldChange = YES;
@@ -252,7 +248,9 @@ static int UPDATE_FEED_INTERVAL = 600;
 	Feed *feed;
 	while (feed = [feedEnumerator nextObject])
 	{
+		[sourceList setNeedsDisplay:YES];
 		[feed updateFeed];
+		[sourceList setNeedsDisplay:YES];
 	}
 	
 	[self setRemoveFeed:YES];
