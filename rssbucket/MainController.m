@@ -352,6 +352,7 @@ static int UPDATE_FEED_INTERVAL = 600;
 		[self updateWebView];
 	}
 	[sourceList setNeedsDisplay:YES];
+	[itemsView deselectAll:self];
 }
 
 //
